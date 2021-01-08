@@ -5,6 +5,7 @@ const emails = require('../fixtures/emails');
 const generateId = require('../lib/generate-id');
 const bodyParser = require('body-parser');
 const NotFound = require('../lib/not-found');
+let upload = multer({dest: path.join(__dirname, '../uploads')});
 let getEmailsRoute = (req, res) => {
     res.send(emails);
 }
@@ -16,7 +17,6 @@ let getEmailRoute = (req, res) => {
 }
 
 
-let upload = multer({dest: path.join(__dirname, '/uploads')});
 let createEmailRoute = async (req, res) => {
     let attachments = req.files.map(file => file.filename);
     let newEmail = {...req.body, id:generateId(), attachments};
