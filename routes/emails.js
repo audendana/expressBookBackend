@@ -28,7 +28,6 @@ let createEmailRoute = async (req, res) => {
 
 let updateEmailRoute = async (req, res) => {
     let email = emails.find(email => email.id === req.params.id);
-    if(!email) {throw new NotFound();}
     let newAttachment = (req.files || []).map(file => '/uploads' + file.filename);
     req.body.attachments = {...email.attachments, ...newAttachment};
     Object.assign(email, req.body);
@@ -43,6 +42,29 @@ let deleteEmailRoute = (req, res) => {
     res.sendStatus(204);
 };
 
+let authorizedUpdateEmailRoute = (req, res, next) => {
+    let email = emails.find(email => email.id === req.params.id);
+    if(!email) {throw new NotFound();}
+    let user = req.user;
+    if(user.id === email.from)
+    {
+        next();
+    }
+    else
+    {
+        res.sendStatus(403);
+    }
+}
+let authorizedDeleteEmailRoute = (req, res, next) => {
+    let email = emails.find(email => email.id === req.params.id);
+    if(!email) {throw new NotFound();}
+    let user = req.user;
+    if(user.id === email.to){
+        next();
+    } else {
+        res.sendStatus(403);
+    }
+}
 let emailsRouter = express.Router();
 emailsRouter.use(requireAuth);
 emailsRouter.route('/')
@@ -55,10 +77,11 @@ emailsRouter.route('/')
 emailsRouter.route('/:id')
     .get(getEmailRoute)
     .patch(
+        authorizedUpdateEmailRoute,
         bodyParser.json(),
         bodyParser.urlencoded({extended: true}),
         upload.array('attachments'),
         updateEmailRoute)
-    .delete(deleteEmailRoute);
+    .delete(authorizedDeleteEmailRoute, deleteEmailRoute);
 
 module.exports = emailsRouter;
