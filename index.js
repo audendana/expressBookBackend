@@ -1,19 +1,24 @@
 const path = require('path');
+require('dotenv').config();
+console.log(process.env.SIGNATURE);
 const express = require('express');
 const compression = require('compression');
 const serveStatic = require('serve-static');
-const usersRouter = require('./routes/users')
-const emailsRouter = require('./routes/emails')
+const usersRouter = require('./routes/users');
+const emailsRouter = require('./routes/emails');
+const tokensRouter = require('./routes/tokens');
 const logger = require('./lib/logger');
 const notFoundHandler = require('./lib/notFoundHandler');
 const basicAuth = require('./lib/basic-auth');
 const findUser = require('./lib/find-user');
-
+const tokenAuth = require('./lib/token-auth');
 let app = express();
 app.use(logger);
 app.use(compression());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/tokens', tokensRouter);
+app.use(tokenAuth(findUser.byToken));
 app.use(basicAuth(findUser.byCredentials));
 app.use('/users', usersRouter);
 app.use('/emails', emailsRouter);
