@@ -3,6 +3,7 @@ const users = require('../fixtures/users');
 const generateId = require('../lib/generate-id');
 const jsonBodyParser = require('../lib/json-body-parser');
 const NotFound = require('../lib/not-found');
+const requireAuth = require('../lib/require-auth.js');
 
 let getUsersRoute = (req, res) => {
     res.send(users);
@@ -37,7 +38,7 @@ let deleteUserRoute = (req, res) => {
 };
 
 let userRouter = express.Router();
-
+userRouter.use(requireAuth);
 userRouter.route('/')
     .get(getUsersRoute)
     .post(jsonBodyParser, createUserRoute)

@@ -5,6 +5,7 @@ const emails = require('../fixtures/emails');
 const generateId = require('../lib/generate-id');
 const bodyParser = require('body-parser');
 const NotFound = require('../lib/not-found');
+const requireAuth = require('../lib/require-auth');
 let upload = multer({dest: path.join(__dirname, '../uploads')});
 let getEmailsRoute = (req, res) => {
     res.send(emails);
@@ -28,6 +29,8 @@ let createEmailRoute = async (req, res) => {
 let updateEmailRoute = async (req, res) => {
     let email = emails.find(email => email.id === req.params.id);
     if(!email) {throw new NotFound();}
+    let newAttachment = (req.files || []).map(file => '/uploads' + file.filename);
+    req.body.attachments = {...email.attachments, ...newAttachment};
     Object.assign(email, req.body);
     res.status(200);
     res.send(email);
@@ -41,16 +44,21 @@ let deleteEmailRoute = (req, res) => {
 };
 
 let emailsRouter = express.Router();
-
+emailsRouter.use(requireAuth);
 emailsRouter.route('/')
     .get(getEmailsRoute)
     .post(bodyParser.json(),
+        bodyParser.urlencoded({extended: true}),
         upload.array('attachments'),
         createEmailRoute);
 
 emailsRouter.route('/:id')
     .get(getEmailRoute)
-    .patch(bodyParser.json(), updateEmailRoute)
+    .patch(
+        bodyParser.json(),
+        bodyParser.urlencoded({extended: true}),
+        upload.array('attachments'),
+        updateEmailRoute)
     .delete(deleteEmailRoute);
 
 module.exports = emailsRouter;
