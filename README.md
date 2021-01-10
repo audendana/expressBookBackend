@@ -1,4 +1,4 @@
-# **From the book Design Patterns for Exress.js**
+# **From the book Design Patterns for Express.js**
 
 To use the code clone the repo and run
 ` npm install` to install the necessary dependencies.
